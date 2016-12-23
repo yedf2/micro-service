@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es6",
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "removeComments": false,
+    "rootDir":".",
+    "outDir":".",
+    "declaration":false,
+    "noLib":false,
+    "sourceMap": false
+  },
+  "exclude":[
+    "node_modules",
+    "test",
+    ".idea",
+    "dist",
+    ".git"
+  ]
+}
