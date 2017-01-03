@@ -6,15 +6,15 @@
     "module": "commonjs",
     "noImplicitAny": false,
     "removeComments": false,
-    "rootDir":".",
-    "outDir":".",
-    "declaration":false,
+    "rootDir":"src",
+    "outDir":"lib",
+    "declaration":true,
     "noLib":false,
-    "sourceMap": false
+    "sourceMap": true
   },
   "exclude":[
     "node_modules",
-    "test",
+    "lib",
     ".idea",
     "dist",
     ".git"

@@ -1,0 +1,5 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "files.autoSave": "onFocusChange",
+    "typescript.tsdk": "/usr/local/lib/node_modules/.typescript_npminstall/typescript/2.1.4/typescript/lib"
+}

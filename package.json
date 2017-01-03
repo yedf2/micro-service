@@ -1,34 +1,42 @@
 {
-    "name": "m-service",
-    "version": "1.0.4",
-    "description": "micro service common",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-        "babel-polyfill": "^6.13.0",
-        "bluebird": "^3.3.5",
-        "body-parser": "^1.14.1",
-        "connect-timeout": "^1.7.0",
-        "cookie-parser": "^1.4.3",
-        "date-format-lite": "^0.9.1",
-        "express": "^4.13.3",
-        "md5": "^2.0.0",
-        "morgan": "^1.6.1",
-        "multer": "^1.1.0",
-        "request": "^2.67.0",
-        "sprintf": "^0.1.5",
-        "string": "^3.3.1",
-        "tracer": "^0.8.3",
-        "underscore": "^1.8.3"
-    },
-    "devDependencies": {
-        "@types/express": "^4.0.34",
-        "@types/node": "^6.0.52",
-        "@types/underscore": "^1.7.36",
-        "supertest": "^1.1.0"
-    }
+  "name": "m-service",
+  "version": "1.0.8",
+  "description": "micro service common",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrent 'tsc -w' 'npm run dev'",
+    "dev": "sleep 2 && supervisor -w . -- . center proxy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-polyfill": "^6.13.0",
+    "bluebird": "^3.3.5",
+    "body-parser": "^1.14.1",
+    "connect-timeout": "^1.7.0",
+    "cookie-parser": "^1.4.3",
+    "date-format-lite": "^0.9.1",
+    "express": "^4.13.3",
+    "express-http-proxy": "^0.10.1",
+    "md5": "^2.0.0",
+    "morgan": "^1.6.1",
+    "multer": "^1.1.0",
+    "request": "^2.67.0",
+    "sprintf": "^0.1.5",
+    "string": "^3.3.1",
+    "tracer": "^0.8.3",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.0.34",
+    "@types/node": "^6.0.52",
+    "@types/underscore": "^1.7.36",
+    "supertest": "^1.1.0"
+  },
+  "files": [
+    "lib/*.ts",
+    "lib/*.js",
+    "*.json"
+  ]
 }
