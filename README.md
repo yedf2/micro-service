@@ -47,6 +47,7 @@ ms.createApp({
 
 ###启动三个服务角色
 ```javascript
+// ./s1.js
 let ms = require('m-service');
 
 ms.createApp({
@@ -76,6 +77,7 @@ module.exports.f = (console, query, body)=>{
 	return {query, body, msg:'success'};
 }
 
+// ./s2.js
 let ms = require('m-service');
 ms.createApp({
   centers:"http://localhost:5000/api/center", //指定服务中心
