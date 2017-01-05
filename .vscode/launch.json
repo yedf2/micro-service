@@ -9,7 +9,7 @@
         "name": "DEBUG",
         "outFiles": ["${workspaceRoot}/lib/**/*.js"],
         "preLaunchTask": "tsc",
-        "program": "${workspaceRoot}/src/index.ts",
+        "program": "${workspaceRoot}/example/s1.js",
         "request": "launch",
         "runtimeArgs": ["--nolazy"],
         "runtimeExecutable": null,

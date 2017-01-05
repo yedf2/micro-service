@@ -115,7 +115,7 @@ async function callFunc(console:Console, dir, req, res) {
   let ps = req.originalUrl.slice('/api/'.length).split('/');
   let service = ps[0];
   let file = ps.slice(0, ps.length-1).join('/');
-  let func = ps[ps.length-1];
+  let func = ps[ps.length-1].split('?')[0];
   let index = `${dir}/${service}/index`;
   let js = `${dir}/${file}`;
   if (await existModule(index)) {

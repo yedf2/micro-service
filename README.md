@@ -90,6 +90,6 @@ ms.createApp({
 
 现在可以访问代理直接访问所有微服务
 
-    localhost:4999/api/dir2/file2/f?p1=1&p2=2&通过代理访问微服务
-    localhost:4999/api/dir1/file2/f?p1=1&p2=2&通过代理访问微服务
+    localhost:4999/api/dir1/file1/f1?p1=1&p2=2&&通过代理访问微服务
+    localhost:4999/api/dir2/file1/f1?p1=1&p2=2&&通过代理访问微服务
 
