@@ -93,3 +93,15 @@ ms.createApp({
     localhost:4999/api/dir1/file1/f1?p1=1&p2=2&&通过代理访问微服务
     localhost:4999/api/dir2/file1/f1?p1=1&p2=2&&通过代理访问微服务
 
+##开发
+```
+git clone https://github.com/yedf/micro-service.git
+cd micro-service
+cnpm install
+sudo cnpm install -g typescript
+npm start #启动微服务的注册中心、代理、服务名称为dir1的微服务
+```
+
+启动另一个微服务dir2
+
+    cd example && node s2.js
