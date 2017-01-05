@@ -10,7 +10,7 @@ micro-service a mirco service framework/一个简单的node微服务框架
 ##编写服务处理函数
 
 ```javascript
-//./dir1/file1.js
+// dir1/file1.js
 // 使用传入的console参数输出可以自动在日志里带上request id，便于跟踪一个请求在所有微服务上的日志
 // 返回值如果是非null，则会把该值JSON.stringify后作为结果返回，若是promise，则等待promise的结果再返回
 module.exports.f1 = (console, query, body, req, res)=>{
@@ -23,7 +23,7 @@ module.exports.f1 = (console, query, body, req, res)=>{
 按照普通的web方式的方式提供服务
 
 ```javascript
-//./web.js
+// web.js
 let ms = require('m-service');
 
 ms.createApp({
@@ -47,7 +47,7 @@ ms.createApp({
 
 ###启动三个服务角色
 ```javascript
-// ./s1.js
+// s1.js
 let ms = require('m-service');
 
 ms.createApp({
@@ -72,12 +72,12 @@ ms.createApp({
 ```
 ###只启动微服务
 ```javascript
-//./dir2/file2.js
+// dir2/file2.js
 module.exports.f = (console, query, body)=>{
 	return {query, body, msg:'success'};
 }
 
-// ./s2.js
+// s2.js
 let ms = require('m-service');
 ms.createApp({
   centers:"http://localhost:5000/api/center", //指定服务中心
