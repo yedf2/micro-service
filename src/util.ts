@@ -4,6 +4,13 @@ import {logger as console} from './logger';
 import * as _ from 'underscore';
 let crypto = require('crypto');
 
+export function setInterval2(cb, interval, next) {
+  setTimeout(()=>{
+    cb();
+    setInterval(cb, interval)
+  }, next);
+}
+
 export async function loadJsonConf(filename) {
   let fs = require('fs');
   if (await fs.existsAsync(filename)) {

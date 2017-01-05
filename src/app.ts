@@ -14,6 +14,7 @@ import * as express from 'express'; //this load used 100ms
 let parser:any = require('body-parser');
 import * as _ from 'underscore';
 export let fs = require('fs');
+import * as util from './util';
 
 let globalInited = false;
 function globalInit() {
@@ -69,17 +70,17 @@ export function createApp(conf):any {
 
 export function createServices(app, conf) {
   let {port, names, dir} = conf.services;
-  let centers = conf.centers;
   let net = require('./net');
-  let reg = ()=>centers.split(';').map(h=>{
-    net.postJson(console, h, {services:names, port:port});
-  });
-  reg();
-  setInterval(reg, 30000);
   app.use(names.map(s=>`/api/${s}/`), (req, res)=>handleService(dir, req, res));
   app.listen(port, ()=>{
     console.log(`services listening on port: ${port}`);
   })
+  if (!conf.centers)
+    return;
+  let reg = ()=>conf.centers.split(';').map(h=>{
+    net.postJson(console, h, {services:names, port:port});
+  });
+  util.setInterval2(reg, 30000, 0);
 }
 
 export async  function outputResult (console, res:Response, cont:any, status?:number) {
@@ -128,7 +129,11 @@ async function callFunc(console:Console, dir, req, res) {
     if (!md[func]) {
       return Promise.reject([`can't find func: ${func} in file: ${js}`, 404]);
     }
-    return await md[func](console, req.query, req.body, req, res);
+    let r = md[func](console, req.query, req.body, req, res);
+    if (r && r.then) {
+      r = await r;
+    }
+    return r;
   }
   return Promise.reject([`can't find file ${js} or ${index}`, 404]);
 }
@@ -140,7 +145,6 @@ export async function handleService(dir, req:Request, res:Response): Promise<any
 export async function handleRequest(req:Request, res:Response, handler): Promise<any> {
   let request_id = req.header('x-request-id') || '-'+randString();
   let console = getLogger(request_id);
-  console.log(`${req.method} ${req.originalUrl} ${JSON.stringify(req.query)} body: ` + printable(req.body));
   let promise = handler(console, req, res);
   promise.then(
     r => r && outputResult(console, res, r, 200),
@@ -159,7 +163,7 @@ export function createGlobalCenter(app, conf) {
     app.listen(conf.center.port, ()=>{
       console.log(`center listening on port: ${conf.center.port}`);
     });
-    allServices.setSaveFile(conf.center.dataFile);
+    centerServices.setSaveFile(conf.center.dataFile);
 }
 
 export function createGlobalProxy(app, conf) {
@@ -167,26 +171,24 @@ export function createGlobalProxy(app, conf) {
   app.listen(conf.proxy.port, ()=>{
     console.log(`proxy listening on port: ${conf.proxy.port}`);
   });
-  if (!conf.center) { //如果此进程没有center，则需要进行心跳获取最新的service，否则数据直接共享
+  if (!conf.center && conf.centers) { //如果此进程没有center，则需要进行心跳获取最新的service，否则数据直接共享
     async function heartBeat() {
-      let host = conf.proxy.centers.split(';')[0];
+      let host = conf.centers.split(';')[0];
       let net = require('./net');
-      allServices.services = await net.getJson(console, host);
+      centerServices.services = await net.getJson(console, host);
     }
-    setTimeout(heartBeat, 1000);
-    setInterval(heartBeat, 30000);
+
+    util.setInterval2(heartBeat, 30000, 1000);
   }
 }
 
-class Services {
-  setSaveFile(filename) {
+class CenterServices {
+  async setSaveFile(filename) {
     this.filename = filename;
     if (filename) {
-      let util = require('./util');
-      util.loadJsonConf(filename).then(r=>{
-        this.services = r;
-        console.log(`services loaded: ${JSON.stringify(this.services)}`);
-      });
+      let r = await util.loadJsonConf(filename);
+      this.services = r;
+      console.log(`services loaded: ${JSON.stringify(this.services)}`);
     }
   }
   filename:string;
@@ -209,48 +211,89 @@ class Services {
     if (this.filename)
       fs.writeFileAsync(this.filename, JSON.stringify(this.services));
   };
-  addHost = (service, ip, port, expire) => {
-    if (!this.services[service]) {
-      this.services[service] = {};
+  addHost = (service) => {
+    let name = service.name;
+    if (!this.services[name]) {
+      this.services[name] = {};
     }
-    let hosts = this.services[service];
-    expire = expire || new Date().getTime() + 5 * 60 * 1000;
-    if (ip && ip[0] == ':') {
-      ip = `[${ip}]`;
-    }
-    hosts[`http://${ip}:${port}`] = {service, ip, port, expire, expireTime:new Date(expire).format()};
+    let hosts = this.services[name];
+    let expire = service.expire || new Date().getTime() + 50 * 60 * 1000;
+    let key = `http://${service.ip}:${service.port}`;
+    hosts[key] = _.extend({}, service, {key, expire, expireTime:new Date(expire).format()});
     if (this.filename)
       fs.writeFileAsync(this.filename, JSON.stringify(this.services));
   }
+  deleteHost = (service, host)=>{
+    if (this.services[service]) {
+      delete this.services[service][host];
+    }
+  }
 }
 
-let allServices = new Services();
+let centerServices = new CenterServices();
 
 // 注册一个服务，返回所有已注册的服务，如果没有服务名，则不注册服务，只返回所有服务
 // 如果指定一个过期的expire，则删除服务
 export async function register(console:Console, req:Request) {
-  let {service, port, expire, services,ip} = _.extend({}, req.query, req.body);
+  let {service, port, expire, services, ip, priority} = _.extend({}, req.query, req.body);
   ip = ip || req.connection.remoteAddress;
+  if (ip[0] == ':')
+    ip = `[${ip}]`;
   services = services || [];
   if (service) {
     services.push(service);
   }
-  services.map(s=>allServices.addHost(s, ip, port, expire));
-  allServices.clearExpires();
-  return allServices.services;
+  services.map(m=>centerServices.addHost({name:m, ip, port, expire, priority}));
+  centerServices.clearExpires();
+  return centerServices.services;
 }
 
+class CurrentServices {
+  constructor(){
+    setInterval(()=>{this.services={}}, 30*1000);
+  }
+  services:any = {};
+  allocateService(service, failedAddr?) { // allocate an address diff from failedAddr;
+    if (failedAddr) {
+      if (this.services[service] == failedAddr) {
+        delete this.services[service];
+      }
+      centerServices.deleteHost(service, failedAddr);
+    }
+    if (this.services[service]) //上次的地址OK，返回
+      return this.services[service];
+    let candidates = _.values(centerServices.services[service]||{});
+    if (!candidates.length)
+      return null;
+    candidates = candidates.sort((a,b)=>(b.priority||-1000)-(a.priority||-1000)); //优先级排序
+    if (candidates[0].priority)
+      candidates = candidates.filter(a=>a.priority=candidates[0].priority); //只取优先级最高的候选
+    return candidates[Math.floor(Math.random()*candidates.length)].key; //选择一个随机的
+  }
+}
+
+let currentServices = new CurrentServices();
 // 注册一个服务，返回所有已注册的服务，如果没有服务名，则不注册服务，只返回所有服务
 // 如果指定一个过期的expire，则删除服务
 export async function proxy(console:Console, req:Request, res:Response) {
   let service = req.originalUrl.slice('/api/'.length).split('/')[0];
   req.url = req.originalUrl;
-  let dests = allServices.services[service];
-  if (!dests) {
-    return Promise.reject(`no available service for ${service}`);
+  innerProxy(console, service, req, res, 3);
+}
+
+function innerProxy(console, service, req, res, retry, failedAddr?) {
+  if (retry <= 0) {
+    return res.status(502).send(`service ${service} proxy error retry: ${retry}`);
   }
-  let dest = _.keys(dests)[0];
+  let dest = currentServices.allocateService(service, failedAddr);
+  if (!dest) {
+    return res.status(502).send(`service ${service} found no dest`);
+  }
   console.log(`proxying request to ${dest}`);
   let eproxy = require('express-http-proxy');
-  eproxy(dest)(req, res);
+  eproxy(dest)(req, res, (err)=>{
+    console.log(`proxied request to ${dest} failed`, err);
+    innerProxy(console, service, req, res, retry-1, dest);
+  });
+
 }

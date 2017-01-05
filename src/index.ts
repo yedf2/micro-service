@@ -1,6 +1,7 @@
 let ms = require('./app');
+module.exports.createApp = ms.createApp;
 
-ms.createApp({
+!module.parent && ms.createApp({
   centers:"http://localhost:5000/api/center",
   center:{
     port:5000,
