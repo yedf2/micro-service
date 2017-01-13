@@ -59,7 +59,7 @@ ms.createApp({
 let ms = require('m-service');
 
 ms.createApp({
-  centers:"http://localhost:5000/api/center", //指定服务中心
+  centers:"http://localhost:5000/api/center", //指定服务中心，多个请用;分隔
   center:{ //启动center，用于服务发现
     port:5000,
     dataFile:'/var/log/m-service.json',
@@ -118,7 +118,7 @@ npm start #启动微服务的注册中心、代理、服务名称为dir1的微�
 
 ##只启动服务中心或代理
 ```
-// /etc/m-service.conf
+// /etc/m-service.json
 {
   centers:"http://localhost:5000/api/center", //指定服务中心
   center:{ //启动center，用于服务发现
