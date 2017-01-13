@@ -74,7 +74,7 @@ export function createServices(app, conf) {
   app.use(names.map(s=>`/api/${s}/`), (req, res)=>handleService(dir, req, res));
   app.listen(port, ()=>{
     console.log(`services listening on port: ${port}`);
-  })
+  });
   if (!conf.centers)
     return;
   let reg = ()=>conf.centers.split(';').map(h=>{
@@ -85,17 +85,18 @@ export function createServices(app, conf) {
 
 export async  function outputResult (console, res:Response, cont:any, status?:number) {
   status = status || 200;
+  let req:Request = res['req'];
+  let request_id = req['request-id'];
   if (cont.stack) cont = await errorPrintable(cont);
   if (status == 200) {
     res.header("Content-Type", "application/json; charset=utf-8");
     cont = JSON.stringify(cont) + '\n';
   }
-
-  let req:Request = res['req'];
+  res.header('x-request-id', request_id);
   let einfo1 = `${req.method} ${req.originalUrl} ${JSON.stringify(req.query)} body: ` + printable(req.body);
   let einfo2 = ` status: ${status} result: ${printable(cont)}`;
   if(status!=200) {
-    let hint = ` hint:[${Math.random().toString(36).substr(2,8)}]\n`;
+    let hint = ` hint:[${request_id}]\n`;
     cont = typeof cont=='string'?hint+cont: (typeof cont == 'object' ? _.extend(cont, {hint}) : cont);
     einfo1 += hint;
     await fs.writeFile('/tmp/e.log', `${new Date().format()} ${einfo1} \n${new Date().format()} ${einfo2}\n\n`, {encoding: 'utf8',flag: 'a'});
@@ -144,6 +145,7 @@ export async function handleService(dir, req:Request, res:Response): Promise<any
 
 export async function handleRequest(req:Request, res:Response, handler): Promise<any> {
   let request_id = req.header('x-request-id') || '-'+randString();
+  req['request_id'] = request_id;
   let console = getLogger(request_id);
   let promise = handler(console, req, res);
   promise.then(
