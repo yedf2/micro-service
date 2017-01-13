@@ -16,8 +16,9 @@ export async function loadJsonConf(filename) {
   if (await fs.existsAsync(filename)) {
     let cont = await fs.readFileAsync(filename);
     try {
-      if (cont)
-        return JSON.parse(cont);
+      if (cont) {
+        return eval(`(${cont})`);
+      }
     } catch (err) {
       console.log('config content is:', cont);
       throw new Error(`bad config file ${filename}`);

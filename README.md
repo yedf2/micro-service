@@ -115,3 +115,21 @@ npm start #启动微服务的注册中心、代理、服务名称为dir1的微�
 启动另一个微服务dir2
 
     cd example && node s2.js
+
+##只启动服务中心或代理
+```
+// /etc/m-service.conf
+{
+  centers:"http://localhost:5000/api/center", //指定服务中心
+  center:{ //启动center，用于服务发现
+    port:5000,
+    dataFile:'/var/log/m-service.json', //保存当前已注册服务，重启不失效
+  },
+  proxy:{ //启动proxy，自动处理服务发现，失败重试
+    port:4999,
+  }
+}
+```
+cnpm i -g m-service
+
+m-service

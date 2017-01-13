@@ -17,7 +17,7 @@ export let fs = require('fs');
 import * as util from './util';
 
 let globalInited = false;
-function globalInit() {
+export function globalInit() {
   if (globalInited) return;
   globalInited = true;
   let begin = new Date().getTime();
