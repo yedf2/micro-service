@@ -1,8 +1,11 @@
 {
     "name": "m-service",
-    "version": "1.0.14",
+    "version": "1.0.17",
     "description": "micro service common",
     "main": "lib/index.js",
+    "bin": {
+        "m-service": "./m-service"
+    },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "concurrent 'tsc -w' 'npm run dev'",
@@ -35,6 +38,7 @@
         "supertest": "^1.1.0"
     },
     "files": [
+        "m-service",
         "lib/*.ts",
         "lib/*.js",
         "*.json"
